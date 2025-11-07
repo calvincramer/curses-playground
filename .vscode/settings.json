@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.Ap1": "ssh_config",
+        "*.include": "powershell",
+        "*.simics": "powershell",
+        "*.json": "jsonc",
+        "*.css": "css",
+        "ncurses.h": "c"
+    }
+}
