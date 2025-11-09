@@ -267,7 +267,7 @@ void panel() {
     move_panel(panels[4], 15, x);
     update_panels();
     doupdate();
-    usleep(1000 * 50);
+    usleep(1000 * 20);
   }
   move_panel(panels[4], 15, 27);
   update_panels();
@@ -283,6 +283,102 @@ void panel() {
   }
 }
 
+void menu() {
+  // Create the basic items, menu
+  ITEM* basic_items[21];
+  basic_items[0] = new_item("Item 0", "Description 0");
+  basic_items[1] = new_item("Item 1", "Description 1");
+  basic_items[2] = new_item("Item 2", "Description 2");
+  basic_items[3] = new_item("Item 3", "Description 3");
+  basic_items[4] = new_item("Item 4", "Description 4");
+  basic_items[5] = new_item("Item 5", "Description 5");
+  basic_items[6] = new_item("Item 6", "Description 6");
+  basic_items[7] = new_item("Item 7", "Description 7");
+  basic_items[8] = new_item("Item 8", "Description 8");
+  basic_items[9] = new_item("Item 9", "Description 9");
+  basic_items[10] = new_item("Item 10", "Description 10");
+  basic_items[11] = new_item("Item 11", "Description 11");
+  basic_items[12] = new_item("Item 12", "Description 12");
+  basic_items[13] = new_item("Item 13", "Description 13");
+  basic_items[14] = new_item("Item 14", "Description 14");
+  basic_items[15] = new_item("Item 15", "Description 15");
+  basic_items[16] = new_item("Item 16", "Description 16");
+  basic_items[17] = new_item("Item 17", "Description 17");
+  basic_items[18] = new_item("Item 18", "Description 18");
+  basic_items[19] = new_item("Item 19", "Description 19");
+  basic_items[20] = NULL;
+  MENU* basic_menu = new_menu(basic_items);
+  set_menu_spacing(basic_menu, 4, 1, 2);
+  set_menu_format(basic_menu, 4, 1);  // 4 items at most visible
+
+  // Add some color to the menu
+  start_color();
+  init_pair(1, COLOR_RED, COLOR_BLACK);
+  init_pair(2, COLOR_BLUE, COLOR_BLACK);
+  init_pair(3, COLOR_WHITE, COLOR_BLACK);
+  set_menu_fore(basic_menu, COLOR_PAIR(1));
+  set_menu_back(basic_menu, COLOR_PAIR(2));
+  set_menu_grey(basic_menu, COLOR_PAIR(3));
+
+  // Window
+  WINDOW* win = newwin(20, 60, 1, 1);
+  box(win, 0, 0);
+  scrollok(win, true);
+  set_menu_win(basic_menu, win);
+  set_menu_sub(basic_menu, derwin(win, 18, 38, 1, 1));
+
+  keypad(win, TRUE);
+  post_menu(basic_menu);
+  wrefresh(win);
+
+  // Get input for the menu
+  int done = 0;
+  while (!done) {
+    int ch = wgetch(win);
+    switch (ch) {
+      case KEY_DOWN:
+        mvwprintw(win, 16, 1, "You pressed the down arrow key");
+        menu_driver(basic_menu, REQ_DOWN_ITEM);
+        break;
+      case KEY_UP:
+        mvwprintw(win, 16, 1, "You pressed the up arrow key  ");
+        menu_driver(basic_menu, REQ_UP_ITEM);
+        break;
+      case ' ':
+        mvwprintw(win, 16, 1, "toggle                        ");
+        menu_driver(basic_menu, REQ_TOGGLE_ITEM);
+        break;
+      case 'w':
+        mvwprintw(win, 16, 1, "scroll up                     ");
+        menu_driver(basic_menu, REQ_SCR_ULINE);
+        break;
+      case 's':
+        mvwprintw(win, 16, 1, "scroll down                   ");
+        menu_driver(basic_menu, REQ_SCR_DLINE);
+        break;
+      case KEY_PPAGE:
+        mvwprintw(win, 16, 1, "page up                       ");
+        menu_driver(basic_menu, REQ_SCR_UPAGE);
+        break;
+      case KEY_NPAGE:
+        mvwprintw(win, 16, 1, "page down                     ");
+        menu_driver(basic_menu, REQ_SCR_DPAGE);
+        break;
+      case 'q':  // Quit
+        done = 1;
+        break;
+    }
+    wrefresh(win);
+  }
+
+  // Cleanup the menu
+  unpost_menu(basic_menu);
+  for (int i = 0; i < 21; i++) {
+    free_item(basic_items[i]);
+  }
+  free_menu(basic_menu);
+}
+
 int main(int argc, char* argv[]) {
   // Setup ncurses library
   initscr();
@@ -294,8 +390,8 @@ int main(int argc, char* argv[]) {
 
   // basics();
   // mouse();
-  panel();
-  // menu();
+  // panel();
+  menu();
   // TODO form
   // TODO resizing
 
