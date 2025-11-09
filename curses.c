@@ -1,10 +1,14 @@
+
 #include <form.h>
 #include <math.h>
 #include <menu.h>
 #include <ncurses.h>
 #include <panel.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 void wait_advance() {
@@ -284,6 +288,9 @@ void panel() {
 }
 
 void menu() {
+  fill_screen();
+  refresh();
+
   // Create the basic items, menu
   ITEM* basic_items[21];
   basic_items[0] = new_item("Item 0", "Description 0");
@@ -380,6 +387,9 @@ void menu() {
 }
 
 void form() {
+  fill_screen();
+  refresh();
+
   // Create the fields, then form
   FIELD* test_fields[5];
   test_fields[0] = new_field(1, 5, 0, 0, 0, 0);   // label
@@ -464,6 +474,44 @@ void form() {
   delwin(win);
 }
 
+void handle_winch(int sig) {
+  endwin();
+  // Needs to be called after an endwin() so ncurses will initialize
+  // itself with the new terminal dimensions.
+  refresh();
+  clear();
+
+  mvprintw(0, 0, "COLS = %d, LINES = %d", COLS, LINES);
+
+  int mid = COLS / 2;
+  int pad = 10;
+
+  for (int y = (LINES / 2) - 2; y <= (LINES / 2) + 2; y++) {
+    for (int i = pad; i < mid - (pad / 2); i++) {
+      mvaddch(y, i, '-');
+    }
+    for (int i = mid + (pad / 2); i < COLS - pad; i++) {
+      mvaddch(y, i, '+');
+    }
+  }
+
+  refresh();
+}
+
+void resize_respond() {
+  fill_screen();
+  refresh();
+  curs_set(0);
+
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(struct sigaction));
+  sa.sa_handler = handle_winch;
+  sigaction(SIGWINCH, &sa, NULL);
+
+  handle_winch(0);
+  wait_advance();
+}
+
 int main(int argc, char* argv[]) {
   // Setup ncurses library
   initscr();
@@ -473,12 +521,12 @@ int main(int argc, char* argv[]) {
   keypad(stdscr, TRUE);
   curs_set(2);
 
-  // basics();
-  // mouse();
-  // panel();
-  // menu();
+  basics();
+  mouse();
+  panel();
+  menu();
   form();
-  // TODO resizing
+  resize_respond();
 
   // End the curses library
   endwin();
