@@ -379,6 +379,91 @@ void menu() {
   free_menu(basic_menu);
 }
 
+void form() {
+  // Create the fields, then form
+  FIELD* test_fields[5];
+  test_fields[0] = new_field(1, 5, 0, 0, 0, 0);   // label
+  test_fields[1] = new_field(1, 5, 1, 0, 0, 0);   // label
+  test_fields[2] = new_field(1, 10, 0, 6, 0, 0);  // input
+  test_fields[3] = new_field(1, 10, 1, 6, 0, 0);  // input
+  test_fields[4] = NULL;
+  FORM* test_form = new_form(test_fields);
+
+  // Setup the labels
+  field_opts_off(test_fields[0], O_EDIT | O_ACTIVE);
+  set_field_buffer(test_fields[0], 0, "FLD1:");
+  field_opts_off(test_fields[1], O_EDIT | O_ACTIVE);
+  set_field_buffer(test_fields[1], 0, "FLD2:");
+
+  // Setup some colors
+  start_color();
+  init_pair(1, COLOR_RED, COLOR_BLACK);
+  init_pair(2, COLOR_BLUE, COLOR_BLACK);
+  init_pair(3, COLOR_BLACK, COLOR_WHITE);
+
+  // Set the field options
+  set_field_back(test_fields[0], COLOR_PAIR(3));
+  set_field_back(test_fields[1], COLOR_PAIR(3));
+  set_field_back(test_fields[2], COLOR_PAIR(3));
+  set_field_back(test_fields[3], COLOR_PAIR(3));
+
+  set_field_fore(test_fields[0], COLOR_PAIR(2));
+  set_field_fore(test_fields[1], COLOR_PAIR(2));
+  set_field_fore(test_fields[2], COLOR_PAIR(2));
+  set_field_fore(test_fields[3], COLOR_PAIR(2));
+
+  // Window
+  WINDOW* win = newwin(20, 60, 3, 3);
+  keypad(win, TRUE);
+  wrefresh(win);
+  int rows = 0;
+  int cols = 0;
+  scale_form(test_form, &rows, &cols);
+  set_form_win(test_form, win);
+  set_form_sub(test_form, derwin(win, rows, cols, 2, 2));
+  post_form(test_form);
+  wrefresh(win);
+
+  // Wait for a key press
+  int done = 0;
+  while (!done) {
+    int ch = getch();
+    switch (ch) {
+      case KEY_DOWN:
+        form_driver(test_form, REQ_NEXT_FIELD);
+        break;
+      case KEY_UP:
+        form_driver(test_form, REQ_PREV_FIELD);
+        break;
+      case KEY_LEFT:
+        form_driver(test_form, REQ_PREV_CHAR);
+        break;
+      case KEY_RIGHT:
+        form_driver(test_form, REQ_NEXT_CHAR);
+        break;
+      case KEY_BACKSPACE:
+        form_driver(test_form, REQ_DEL_PREV);
+        break;
+      case 'q':  // Quit
+        done = 1;
+        break;
+      default:
+        form_driver(test_form, ch);
+        break;
+    }
+    wrefresh(win);
+  }
+
+  // Cleanup
+  unpost_form(test_form);
+  free_form(test_form);
+  free_field(test_fields[0]);
+  free_field(test_fields[1]);
+  free_field(test_fields[2]);
+  free_field(test_fields[3]);
+  delwin(win);
+}
+
 int main(int argc, char* argv[]) {
   // Setup ncurses library
   initscr();
@@ -391,8 +476,8 @@ int main(int argc, char* argv[]) {
   // basics();
   // mouse();
   // panel();
-  menu();
-  // TODO form
+  // menu();
+  form();
   // TODO resizing
 
   // End the curses library
